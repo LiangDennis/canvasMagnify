@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>canvas-image</title>
+</head>
+<body>
+<canvas id="canvas" style="display: inline;margin: 0 auto;border: 1px solid #aaa"></canvas>
+<!-- <div> -->
+  <canvas id="on-canvas" style="display: inline;"></canvas>
+  <canvas id="copy-canvas" style="display: inline;"></canvas>
+<!-- </div> -->
+<canvas id="off-canvas"  style="display: block;"></canvas>
+<canvas id="other-canvas"  style="display: block;"></canvas>
+<script>
+    var canvas= document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var offCanvas = document.getElementById('off-canvas');
+    var offCanvasContext = offCanvas.getContext('2d');
+    var onCanvas = document.getElementById('on-canvas')
+    var onCanvasContext = onCanvas.getContext('2d');
+    var copyCanvas = document.getElementById('copy-canvas')
+    var copyCanvasContext = copyCanvas.getContext('2d');
+    var otherCanvas = document.getElementById('other-canvas')
+    var otherCanvasContext = otherCanvas.getContext('2d');
+    var scale =  3;
+    var imgScale = 1
+    var image = new Image();
+    window.onload = function () {
+      var initScale = 1
+      var isMouseDown = false
+      // image.src= 'p1.JPG'
+      // image.src= 'Snipaste_2020-05-06_00-12-30.png'
+      image.src= '517390520200520065727590_qj.jpg'
+      // 图片加载时候开始绘制图片。canvas会自动裁剪溢出的图片。
+      image.onload = function() {
+        //drawImage img,x,y,w,h
+        useOtherCanvas()
+        dramImageByScale(1)
+        // offCanvas.width = image.width*3
+        // offCanvas.height = image.height*3
+        // offCanvasContext.drawImage(image,0,0,offCanvas.width,offCanvas.height)
+        offCanvas.width = otherCanvas.width*scale
+        offCanvas.height = otherCanvas.height*scale
+        offCanvasContext.drawImage(
+          otherCanvas,
+          0,
+          0,
+          offCanvas.width,
+          offCanvas.height
+        )
+      }
+      function useOtherCanvas() {
+        otherCanvas.width = 400
+        otherCanvas.height = 500
+        otherCanvasContext.drawImage(
+          image, 908, 845, 1015, 895, 0, 0, 400, 500
+        );
+      }
+      function test() {
+        onCanvas.width = 600 // 绘制的onCanvas的宽度
+        onCanvas.height = 600 // 绘制的onCanvas的高度
+        onCanvasContext.drawImage(
+          offCanvas,
+          800, // 将 offcanvas 从哪里开始截取
+          500, // 将 offcanvas 从哪里开始截取
+          600, // 错误：绘制的onCanvas的宽度 正确：是截取offcanvas的宽度
+          600, // 错误：绘制的onCanvas的高度 正确：是截取offcanvas的高度
+          0, // 画完后，图片在oncanvas框内的水平平移位置 
+          0, // 画完后，图片在oncanvas框内的垂直平移位置 
+          600, // 错误：截取的图片宽度 正确：绘制在oncanvas上的图片宽度
+          600 // 错误：截取的图片高度 正确：绘制在oncanvas上的图片高度
+        )
+        // copyCanvas.width = 300
+        // copyCanvas.height = 300
+        // copyCanvasContext.drawImage(
+        //   onCanvas,
+        //   300,
+        //   0,
+        //   300,
+        //   300,
+        //   0,
+        //   0,
+        //   300,
+        //   300
+        // )
+      }
+      function closeTest() {
+        onCanvas.width = 0
+        onCanvas.height = 0
+        copyCanvas.width = 0
+        copyCanvas.height = 0
+      }
+      function dramImageByScale(scale) {
+        imgScale=scale
+        // var imgWidth = image.width
+        // var imgHeight = image.height
+        var imgWidth = otherCanvas.width
+        var imgHeight = otherCanvas.height
+        canvas.width = imgWidth;
+        canvas.height = imgHeight;
+        var width = imgWidth*scale;
+        var height = imgHeight*scale;
+        var sx = canvas.width/2-width/2
+        var sy = canvas.height/2 - height/2
+        context.clearRect(0,0,canvas.width,canvas.height)
+        context.drawImage(otherCanvas,sx,sy,width,height)
+        // context.drawImage(water,canvas.width-water.width,canvas.height-water.height)
+      }
+      //设置放大镜的显示位置
+      function getCanvasObj(canvas,x,y) {
+        // 获取canvas元素的边界框来计算当前点击的位置相对于canvas的坐标
+        var box = canvas.getBoundingClientRect()
+        // var box2 = canvas.getBoundingClientRect()
+        // box2.left += 100
+        // box2.top += 100
+        return {
+          x: x-box.left,
+          y: y-box.top
+        }
+      }
+      canvas.onmousedown = function(e) {
+        e.preventDefault()
+        isMouseDown = true;
+        var point = getCanvasObj(canvas,e.clientX,e.clientY);
+       drawBig(true,point)
+      }
+      canvas.onmousemove = function(e) {
+        e.preventDefault()
+        if(isMouseDown) {
+          var point = getCanvasObj(canvas,e.clientX,e.clientY);
+          drawBig(true,point)
+        }
+      }
+      canvas.onmouseup = function(e) {
+        e.preventDefault()
+        isMouseDown = false
+        drawBig(false)
+      }
+      canvas.onmouseout = function(e){
+        e.preventDefault()
+        isMouseDown = false;
+        drawBig(false)
+      }
+      // 绘制放大镜
+      function testCopy(ocanvas, a, b, c, d, e, f, g, h) {
+        copyCanvas.width = 300
+        copyCanvas.height = 300
+        copyCanvasContext.drawImage(
+          ocanvas, a, b, c, d, e, f, g, h
+        )
+      }
+      function drawBig(is,point) {
+        // context.clearRect(0,0,canvas.width,canvas.height);
+        context.drawImage(otherCanvas,0,0,otherCanvas.width,otherCanvas.height )
+        // closeTest()
+        if(is) {
+          // test()
+          var imgX = point.x*scale;
+          var imgY = point.y*scale;
+          var mr = 100;
+          var sx = imgX-mr;
+          var sy = imgY-mr
+          var dx = point.x - mr
+          var dy = point.y - mr
+          testCopy(offCanvas,sx - 100,sy - 30,4*mr,4*mr,0,0,300,300) // 75 数值与 下面的rect的宽高的一半有关系
+          // context.fii
+          // context.drawImage(onCanvas,sx,sy,2*mr,2*mr,dx,dy,2*mr,2*mr)
+          context.fillStyle = 'rgba(255, 0, 0, 0.5)'
+          context.fillRect(point.x - 25, point.y - 25, 50, 50)
+          // context.drawImage(offCanvas,sx,sy,4*mr,4*mr,dx,dy,2*mr,2*mr)
+        }
+      }
+    }
+</script>
+</body>
+</html>

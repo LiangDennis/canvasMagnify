@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>canvas-image</title>
+    <style>
+      .w-h-400 {
+        width: 100%;
+        height: 600px;
+        overflow: scroll;
+      }
+    </style>
+</head>
+<body>
+  <div class="w-h-400">
+    <canvas id="canvas" style="display: inline;margin: 0 auto;border: 1px solid #aaa;transform: scale(1.2);"></canvas>
+  </div>
+<!-- <div> -->
+  <canvas id="copy-canvas" style="display: inline;"></canvas>
+<!-- </div> -->
+<canvas id="off-canvas"  style="display: block;"></canvas>
+<canvas id="other-canvas"  style="display: block;"></canvas>
+<script>
+    var canvas= document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var offCanvas = document.getElementById('off-canvas');
+    var offCanvasContext = offCanvas.getContext('2d');
+    var copyCanvas = document.getElementById('copy-canvas')
+    var copyCanvasContext = copyCanvas.getContext('2d');
+    var otherCanvas = document.getElementById('other-canvas')
+    var otherCanvasContext = otherCanvas.getContext('2d');
+    var scale =  5;
+    var imgScale = 1;
+    var TransformScale = 1
+    var image = new Image();
+    window.onload = function () {
+      var initScale = 1
+      var isMouseDown = false
+      // image.src= 'p1.JPG'
+      // image.src= 'Snipaste_2020-05-06_00-12-30.png'
+      image.src= '517390520200520065727590_qj.jpg'
+      // 图片加载时候开始绘制图片。canvas会自动裁剪溢出的图片。
+      image.onload = function() {
+        //drawImage img,x,y,w,h
+        useOtherCanvas()
+        dramImageByScale(1)
+        // offCanvas.width = image.width*3
+        // offCanvas.height = image.height*3
+        // offCanvasContext.drawImage(image,0,0,offCanvas.width,offCanvas.height)
+        offCanvas.width = otherCanvas.width*scale
+        offCanvas.height = otherCanvas.height*scale
+        offCanvasContext.drawImage(
+          otherCanvas,
+          0,
+          0,
+          offCanvas.width,
+          offCanvas.height
+        )
+      }
+      
+      function useOtherCanvas() {
+        otherCanvas.width = 400
+        otherCanvas.height = 500
+        otherCanvasContext.drawImage(
+          image, 908, 845, 1015, 895, 0, 0, 400, 500
+        );
+      }
+      function dramImageByScale(scale) {
+        imgScale=scale
+        var imgWidth = otherCanvas.width
+        var imgHeight = otherCanvas.height
+        canvas.width = imgWidth;
+        canvas.height = imgHeight;
+        var width = imgWidth*scale;
+        var height = imgHeight*scale;
+        var sx = canvas.width/2-width/2
+        var sy = canvas.height/2 - height/2
+        context.clearRect(0,0,canvas.width,canvas.height)
+        context.drawImage(otherCanvas,sx,sy,width,height)
+      }
+      //设置放大镜的显示位置
+      function getCanvasObj(canvas,x,y) {
+        // 获取canvas元素的边界框来计算当前点击的位置相对于canvas的坐标
+        var box = canvas.getBoundingClientRect()
+        return {
+          x: x-box.left,
+          y: y-box.top
+        }
+      }
+      // 鼠标滚动放大缩小效果
+      function scaleCanvas(scale) {
+        // console.log(canvas.style.transform)
+        let str = canvas.style.transform
+        // console.log();
+        let numScale = str.split('(')[1].split(')')[0]
+        numScale = Number(numScale) + Number(scale)
+        console.log(numScale);
+        
+        canvas.style.transform = `scale(${numScale})`
+      }
+      canvas.onmousewheel = function(e) {
+        // console.log('wheel')
+        // console.log(e.wheelDelta);
+        if(e.wheelDelta < 0) scaleCanvas(-0.1)
+        if(e.wheelDelta > 0) scaleCanvas(0.1)
+      }
+      // canvas.onmouseup 
+      // end 鼠标滚动放大缩小效果
+      canvas.onmouseover = function(e) {
+        e.preventDefault()
+        isMouseDown = true;
+        var point = getCanvasObj(canvas,e.clientX,e.clientY);
+       drawBig(true,point)
+      }
+      canvas.onmousemove = function(e) {
+        e.preventDefault()
+        if(isMouseDown) {
+          var point = getCanvasObj(canvas,e.clientX,e.clientY);
+          drawBig(true,point)
+        }
+      }
+      // canvas.onmouseup = function(e) {
+      //   e.preventDefault()
+      //   isMouseDown = false
+      //   drawBig(false)
+      // }
+      canvas.onmouseout = function(e){
+        e.preventDefault()
+        isMouseDown = false;
+        drawBig(false)
+      }
+      // 绘制放大镜
+      function testCopy(ocanvas, a, b, c, d, e, f, g, h) {
+        copyCanvas.width = 300
+        copyCanvas.height = 300
+        copyCanvasContext.drawImage(
+          ocanvas, a, b, c, d, e, f, g, h
+        )
+      }
+      function drawBig(is,point) {
+        // context.clearRect(0,0,canvas.width,canvas.height);
+        context.drawImage(otherCanvas,0,0,otherCanvas.width,otherCanvas.height )
+        if(is) {
+          var imgX = point.x*scale;
+          var imgY = point.y*scale;
+          var mr = 100;
+          var sx = imgX-mr;
+          var sy = imgY-mr
+          var dx = point.x - mr
+          var dy = point.y - mr
+          testCopy(offCanvas,sx - 100,sy - 30,4*mr,4*mr,0,0,300,300) // 75 数值与 下面的rect的宽高的一半有关系
+          context.fillStyle = 'rgba(255, 0, 0, 0.5)'
+          context.fillRect(point.x - 25, point.y - 25, 50, 50)
+        }
+      }
+    }
+</script>
+</body>
+</html>
